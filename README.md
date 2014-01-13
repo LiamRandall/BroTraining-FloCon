@@ -131,6 +131,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	 }
      }
   }```
+
     9. This code is overly simple; every time we see an http header key pair this event fires.  We simply look the event and are checking specifically for the Cyrillic language.
     10. Did you count how many times this header pair was transmitted in the sample?  Here we are thresholding the notice with a global variable called "bad header"; and we time hosts out using the:
     ```**&create_expire = 10** .
