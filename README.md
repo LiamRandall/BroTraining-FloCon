@@ -96,40 +96,7 @@ FloCon 2014 Bro Training Syllabus:
 http://en.wikipedia.org/wiki/Windows-1251
 	Windows-1251 (a.k.a. code page CP1251) is a popular 8-bit character encoding, designed to cover languages that use the Cyrillic script such as Russian, Bulgarian, Serbian Cyrillic and other languages. It is the most widely used for encoding the Bulgarian, Serbian and Macedonian languages
 ```
-    8. Is that normal for our environment?  Let's see if we can match on that.  Create a new Bro Script: ```match-cyrillic-header.bro```:
-```bro
-@load base/protocols/http/main
-@load base/frameworks/notice
-
-module HTTP;
- 
-export {
-	redef enum Notice::Type += {
-		## raised once per host per 10 min
-		Bad_Header
-	};
-
-	global bad_header: set[addr] &create_expire = 10 min;
-}
- 
-event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=3
-  {
-     if ( name == "CONTENT-TYPE" && value == "text/html; charset=win-1251" )
-     {	
-	 if ( c$id$orig_h !in bad_header )
-	 {
-		add bad_header[c$id$orig_h];
-		NOTICE([$note=HTTP::Bad_Header,
-		 $msg=fmt("Bad header \"%s\" seen in %s", value,c$uid),
-		 $sub=name,
-		 $conn=c,
-		 $identifier=fmt("%s", c$id$orig_h)]);
-		
-
-		print fmt("%s :name:value:  %s:%s",c$uid,name,value);
-	 }
-     }
-  }```
+    8. Is that normal for our environment?  Let's see if we can match on that.  Create a new Bro Script: [match-cyrillic-header.bro](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/match-cyrillic-header.bro):
     9. This code is overly simple; every time we see an http header key pair this event fires.  We simply look the event and are checking specifically for the Cyrillic language.
     10. Did you count how many times this header pair was transmitted in the sample?  Here we are thresholding the notice with a global variable called "bad header"; and we time hosts out using the: ```**&create_expire = 10** /global bad_header: set[addr] &create_expire = 10 min;```
     11. Let's go ahead and replay the sample using our new detector: ```bro -C -r smokekt150.pcap local match-cyrillic-header.bro``` 
