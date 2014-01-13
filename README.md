@@ -44,19 +44,19 @@ FloCon 2014 Bro Training Syllabus:
 
 5. Sumstats Introduction
   1. What are sumstats?  Presentation.
-  2. Review [FTP Bruteforcing](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/brute-force.md) or check it locally: ```less -S /opt/bro/share/bro/policy/protocols/ftp/detect-bruteforcing.bro```
+  2. Review [FTP Bruteforcing](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/brute-force.md) or check it locally: ```less -S /opt/bro/share/bro/policy/protocols/ftp/detect-bruteforcing.bro```
   3. Review the previous exercise- can we apply this model to detect http basic auth bruteforcing?  Suggest some methods.
   4. How many distinct measurements do we want to make?  Based on the previous example can you implement a solution?  For bruteforcers?  For the bruteforced?
-  5. Review [HTTP Basic Auth Brute Forcer Solution](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/detect-http-basic-auth-bruteforcer.bro)
-  6. Review [HTTP Basic Auth Server Brute Forced Solution](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/detect-http-basic-auth-server-bruteforced.bro)
+  5. Review [HTTP Basic Auth Brute Forcer Solution](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/detect-http-basic-auth-bruteforcer.bro)
+  6. Review [HTTP Basic Auth Server Brute Forced Solution](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/detect-http-basic-auth-server-bruteforced.bro)
   7. Execute both detections: ```bro -C -r http-basic-auth-multiple-failures.pcap local detect-http-basic-auth-bruteforcer.bro detect-http-basic-auth-server-bruteforced.bro```
   8. Discuss derivations and improvements- tracking by ASN, remote subnet, whitelisting, blacklisting
   9. Additional Demonstrations of the same technique.
 
 6. Intel Framework
-  1. Exercise 1: [Create An Intel File](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/1-create-intel.md)
-  2. Exercise 2: [Notice on Intel Hits](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/2-intel-do-notice.md)
-  2. Exercise 3: [Notice on Spcific Types of Intel Hits](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/3-intel-notice-on-types.md)  
+  1. Exercise 1: [Create An Intel File](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/1-create-intel.md)
+  2. Exercise 2: [Notice on Intel Hits](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/2-intel-do-notice.md)
+  2. Exercise 3: [Notice on Spcific Types of Intel Hits](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/3-intel-notice-on-types.md)  
 
 7. Files Framework
   1. File extraction demo
@@ -121,7 +121,7 @@ EK_BIN_Blackhole_leadingto_Medfos_0512E73000BCCCE5AFD2E9329972208A_2013-04.pcap 
   5-smokekt150
     1. We have Bro identifying signatures in ports and protocols that it understands; in this example, we are going to have Bro key on a specific protocol related feature.
     2. Let's replay the sample with Bro: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/CRIME/EK_Smokekt150\(Malwaredontneedcoffee\)_2012-09.pcap local```
-	3. Explore the log files; I see a number of potential canidates for items we could fire on.  Let's look a little deeper.  Take a look at the specified .bro file; what are we doing here?  Let's replay the pcap extracting header names and values. [script](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/extract-header-names-and-values.bro)
+	3. Explore the log files; I see a number of potential canidates for items we could fire on.  Let's look a little deeper.  Take a look at the specified .bro file; what are we doing here?  Let's replay the pcap extracting header names and values. [script](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/extract-header-names-and-values.bro)
     4. Now let's investigate the http.log a little further.  Lets look a little closer at those http header values:
     5. ```less http.log | bro-cut server_header_names server_header_values```
 
