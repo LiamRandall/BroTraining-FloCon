@@ -84,57 +84,19 @@ FloCon 2014 Bro Training Syllabus:
     6. Let's follow the stack here- take the fuid and search all of the logs for it; something like this: ```cat http.log | grep F-YOUR-ID```.  How did we know to search the http.log?
     7. Ok, we see this file come down via via http; now the ```user_agent``` field is controlled by the host, so it is easy to forge; however, here we see Java downloading a binary?!  Is that a good thing?!
     8. Let's generalize the previous case and create an alert for that behavior; explore '''cat exe-download-by-java.bro```
-  
-  
-9 Basic Tool Integration  
-  1. Walk-through ````02_run_exiftool.bro````
-    1. Install exiftool.log 
-```
-mkdir exiftool
-cd exiftool/
-wget http://www.sno.phy.queensu.ca/~phil/exiftool/Image-ExifTool-9.43.tar.gz
-tar -xzf Image-ExifTool-9.43.tar.gz
-```
-  2. Modify ```02_run_exiftool.bro``` with the correct path: ```/home/bro/training/files-framework/exiftool/Image-ExifTool-9.43```
-  3. Run ```bro -r /opt/TrafficSamples/faf-traffic.pcap 02_run_exiftool.bro```
-  4. Examine exiftool.log
-
-8. Notice Framework
-  1. Exercise: ```bro -r 01_emailing_simple.bro synscan.pcap``` 
-  2. Exercise: ```bro -r 02_emailing_complex.bro synscan.pcap```
-  3. Exercise: ```bro -r 03_avoid_some_scanners.bro synscan.pcap```
-  4. Exercise: ```bro -r 04_create_a_new_notice.bro mbam_download.trace```
-  5. Walk-through ```05_create_an_action.bro```
-10. Signature Framework
-  1. Exercise: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/APT/mswab_yayih/Mswab_Yayih_FD1BE09E499E8E380424B3835FC973A8_2012-03.pcap local```
-  2. With file extraction: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/APT/mswab_yayih/Mswab_Yayih_FD1BE09E499E8E380424B3835FC973A8_2012-03.pcap site/local.bro extract-all-files.bro```   
-  3. Analyze requests/responses: ```for i in `bro-grep info.asp http.log | bro-cut orig_fuids resp_fuids | sed -e 's/\t/\n/' | grep -v '-'`; do cat "extract_files/extract-HTTP-$i"; echo; echo "-------"; done```
-  4. blackhole-medfos
-    1. Let's get started with a couple of warm up exercises.  Blackhole is one of the most common and frequently updated exploit kits around.  Let's see what they look like with Bro's new File Analysis Framework.
-	2. How many executable files were downloaded to the host?
-    3. ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/CRIME/blackhole-medfos
-EK_BIN_Blackhole_leadingto_Medfos_0512E73000BCCCE5AFD2E9329972208A_2013-04.pcap local```
-    4. How many executable files were downloaded?
-	5. ```less files.log | grep "application" | wc -l```
-	6. What notices were fired?
-    7. ```less notice.log```
-  5-smokekt150
-    1. We have Bro identifying signatures in ports and protocols that it understands; in this example, we are going to have Bro key on a specific protocol related feature.
-    2. Let's replay the sample with Bro: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/CRIME/EK_Smokekt150\(Malwaredontneedcoffee\)_2012-09.pcap local```
-	3. Explore the log files; I see a number of potential canidates for items we could fire on.  Let's look a little deeper.  Take a look at the specified .bro file; what are we doing here?  Let's replay the pcap extracting header names and values. [script](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/extract-header-names-and-values.bro)
+  3. Next on the list ```3-smokekt150``
+    1. Let's start like usual: ```bro -C -r smokekt150.pcap local```
+    2. Explore the log files; I see a number of potential canidates for items we could fire on.  Let's look a little deeper.  Take a look at the specified .bro file; what are we doing here?  Let's replay the pcap extracting header names and values. [script](https://github.com/LiamRandall/BroTraining-FloCon/blob/master/extract-header-names-and-values.bro)
+    3. Download this script and replay it through Bro again: ```bro -C -r smokekt150.pcap local extract-headers-names-and-values.bro```
     4. Now let's investigate the http.log a little further.  Lets look a little closer at those http header values:
     5. ```less http.log | bro-cut server_header_names server_header_values```
-
-This content type looks a little weird to me..
-
-			text/html; charset=win-1251
-
-What is that?
+    6. This content type looks a little weird to me: ```text/html; charset=win-1251```
+    7. Is that something we should see on our networks (I don't know, is it?)?  What is that?
 ```
 http://en.wikipedia.org/wiki/Windows-1251
 	Windows-1251 (a.k.a. code page CP1251) is a popular 8-bit character encoding, designed to cover languages that use the Cyrillic script such as Russian, Bulgarian, Serbian Cyrillic and other languages. It is the most widely used for encoding the Bulgarian, Serbian and Macedonian languages
 ```
-Is that normal for our environment?  Let's see if we can match on that.
+    8. Is that normal for our environment?  Let's see if we can match on that.  Create a new Bro Script: ```match-cyrillic-header.bro```:
 
 ```bro
 @load base/protocols/http/main
@@ -171,20 +133,69 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
   }
 ```
 
-This code is overly simple; every time we see an http header key pair this event fires.  We simply look the event and are checking specifically for the Cyrillic language.
-
-Did you count how many times this header pair was transmitted in the sample?  Here we are thresholding the notice with a global variable called "bad header"; and we time hosts out using the **&create_expire = 10** .
-    global bad_header: set[addr] &create_expire = 10 min;
+    9. This code is overly simple; every time we see an http header key pair this event fires.  We simply look the event and are checking specifically for the Cyrillic language.
+    10. Did you count how many times this header pair was transmitted in the sample?  Here we are thresholding the notice with a global variable called "bad header"; and we time hosts out using the:
+    ```**&create_expire = 10** .
+    global bad_header: set[addr] &create_expire = 10 min;```
     
-Let's go ahead and replay the sample using our new detector.
+    11. Let's go ahead and replay the sample using our new detector: ```bro -C -r smokekt150.pcap local match-cyrillic-header.bro``` 
+    12. You should now see a thresholded alert in the notice.log.
+  
+9 Basic Tool Integration
+  1. Let's head back to ```/home/bro/training/files-framework```  
+  2. Walk-through ````02_run_exiftool.bro````
+    1. Install exiftool.log  (this is already completed on your VMs)
+ ```
+ mkdir exiftool
+ cd exiftool/
+ wget http://www.sno.phy.queensu.ca/~phil/exiftool/Image-ExifTool-9.43.tar.gz
+ tar -xzf Image-ExifTool-9.43.tar.gz
+ ```
+  3. Confirm ```02_run_exiftool.bro``` has the correct path: ```/home/bro/training/files-framework/exiftool/Image-ExifTool-9.43```
+  4. Run ```bro -r /opt/TrafficSamples/faf-traffic.pcap local 02_run_exiftool.bro```
+  5. Examine exiftool.log
+  6. Discuss this integration
 
-	bro -r EK_Smokekt150\(Malwaredontneedcoffee\)_2012-09.pcap local  ../solutions/match-headers.bro 
+10. Notice Framework
+  1. The notice framework is designed to give Bro operators flexibility; let's explore.
+  2. Exercise: ```bro -r 01_emailing_simple.bro synscan.pcap``` 
+  3. Exercise: ```bro -r 02_emailing_complex.bro synscan.pcap```
+  4. Exercise: ```bro -r 03_avoid_some_scanners.bro synscan.pcap```
+  5. Exercise: ```bro -r 04_create_a_new_notice.bro mbam_download.trace```
+  6. Walk-through ```05_create_an_action.bro```
 
-You should now see a thresholded alert in the notice.log.
-
-
-
-4. SSL/TLS
-  1. Exercise: bro -C -r rsasnakeoil2.cap
-  2. Exercise: bro -r basic-gmail.pcap
-
+11. Signature Framework
+  1. Bro has a capable signature engine built in; if you are familiear with traditional signature based detection / IDS's these examples should be pretty familiar.
+  2. Let's head on over to: ```/home/bro/training/signature-framework```
+  3. Let's warm up: ```1-mswab_yayih```
+    1. Exercise: ```bro -r mswab-yahih.pcap local```
+    2. What logs do you see created?  Any new ones we haven't seen before?
+    3. Explore the logs, paying special attention to signature.log, notice.log, and http.log
+    4. What is happening in this pcap?
+    5. Find the signature file that fired?  Where would you look?
+    6. Explore the signature file: ```cat /opt/bro/share/bro/policy/frameworks/signatures/detect-windows-shells.sig```
+    7. Explore the file a little further; let's extract all the files: ```bro -r mswab-yayih.pcap local ../../files-framework/extract-all-files.bro```   
+    8. Analyze requests/responses: ```for i in `bro-grep info.asp http.log | bro-cut orig_fuids resp_fuids | sed -e 's/\t/\n/' | grep -v '-'`; do cat "extract_files/extract-HTTP-$i"; echo; echo "-------"; done```
+  4. Gotten in on the bitcoin craze yet?  Botnet operators sure have; let's check out ```2-tbot```
+    1. Malware has a purpose; many times that purpose is to generate revenue for their malware authors.
+    2. In this sample we're going to be looking at a bot whose aim is to deliver bitcoin mining traffic.
+    3. Let's take a look: ```bro -r tbot.pcap local```
+    4. Is it obvious what is going on here right away?  You may need to understand a little bit about the way bitcoin mining works; the tldr is that members generally join computational pools.  Have a large botnet?  Put it to work on some one elses electric bill!
+    5. Explore ```http.log```.  What is happening here? 
+    6. Do you see anything that stands out?  What appears to be going on in the http log?
+    7. Now let's take a look at ```json-rpc.sig  mining.bro```
+    8. Let's run this detection routine:  ```bro -r tbot.pcap local mining.bro```
+    9. Check your notice.log
+	10. Here we were able to build some logic around a traditional signature; let's explore more.
+  5. The ```Lurk0``` family of malware has been around for a bit; there are quite a few derivatives out there.
+    1. If you are note familiar with the family of malware, take a look at this great analysis of the many derivatives of this malware found in the wild: [The many faces of Gh0st Rat - Norman](http://download01.norman.no/documents/ThemanyfacesofGh0stRat.pdf)
+    2. Let's figure out what a signature for the RAT might look like; explore the lurk0 subfolder: ```/home/bro/training/signature-framework/3-lurk/lurk0```
+    3. There are three files- what does each one do?
+    4. What are we firing on?
+    5. Let's see if they work: ```bro -r lurk0.pcap local lurk0```
+    6. What is the problem with signature based detection like this?
+    7. Demonstration
+  5. Our final signature framework, is ```4-zeroaccess```
+    1. Review the included pdf.
+    2. Using the template code, can you create a signature that works?
+    
