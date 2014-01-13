@@ -1,4 +1,4 @@
-2013-12 Bro Training Syllabus:
+FloCon 2014 Bro Training Syllabus:
 ===============
 
 0. Setup VM
@@ -6,48 +6,59 @@
   2. Install VirtualBox & VirtualBox Extensions
   3. Uncompress files- 7-zip on Windows, "The Unarchiver" on Mac
   4. logon bro/bro
-1. Class files, either:
+
+1. Class files
   1. /home/bro/training/
+  2. Bro /opt/bro
+  3. Config /opt/bro/share/bro/site/local.bro
+  4. Pcaps /opt/TrafficSamples , /opt/PCAPS_TRAFFIC_PATTERNS
+
 2. What is Bro?
   1. Bro is a language first
   2. Event-driven
   3. Built-in variables like IP address and time interval are designed for network analysis
   4. Built-in functions can be implemented in C++ for speed and integration with other tools
+
 3. A Tour of the Bro logs
-  1. Run Bro against a PCAP (e.g. /opt/TrafficSamples/faf-traffic.pcap)
-  2. Go through some of the logs (e.g. cat files.log | colorize)
-4. SSL/TLS
-  1. Exercise: bro -C -r rsasnakeoil2.cap
-  2. Exercise: bro -r basic-gmail.pcap
-5. HTTP Auth
-  1. Exercise: ```bro -C -r http-auth.pcap``` ([pcap](https://github.com/broala/training-resources/raw/master/http-auth/http-auth.pcap))
-  2. Exercise: ```bro -C -r http-auth.pcap http-auth.bro``` ([script](https://github.com/broala/training-resources/raw/master/http-auth/http-auth.bro))
-6. bro-cut
-  1. Exercise: ```bro -C -r http-basic-auth-multiple-failures.pcap```
-  2. What is the count of the distinct status_code: ```cat http.log | bro-cut status_code | sort | uniq -c | sort -n``` 
-  3. What were the status codes by username?
-7. Sumstats Introduction
-  1. What is sumstats
-  2. Review [FTP Bruteforcing](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/brute-force.md)
+  1. ```cd training\files-framework``` 
+  2. Run Bro against a PCAP: ```bro -r /opt/TrafficSamples/faf-traffic.pcap```
+  3. Look at the logs generated: ```ls *.log```
+  4. Go through some of the logs (e.g. cat files.log | colorize); intro to log guides
+  5. Let's enable some additional scripts: ```bro -r /opt/TrafficSamples/faf-traffic.pcap local```
+  6. Comparing your history, what additional logs are generated?
+  7. Notice that the contents of some of the logs have changed.
+  8. Explore the configuration: ```less -S /opt/bro/share/bro/site/local.bro```
+
+4. Exploring Logs with bro-cut
+  1. Let's move into a different set of pcaps ```cd ../http-auth```
+  2. Exercise: ```bro -C -r http-basic-auth-multiple-failures.pcap local```
+  3. ```bro-cut``` can be used like ```sed```, ```cut```, ```awk``` all at once- with the advantage that it abstracts away from the specific schema (column order) of the logs.
+  4. We can easily start to ask questions like: What is the count of the distinct status_code: ```cat http.log | bro-cut status_code | sort | uniq -c | sort -n``` 
+  5. Or you could get a count of http sessions by username: ```cat http.log | bro-cut username | sort | uniq -c | sort -n```
+  6. Can you generate a count of status_codes by username? What about usernames by status_code? 
+  7. Now add in the distinct URI?  What do you think is going on in this pcap?
+  8. Let's add a little more information and context to this pcap; let's tell Bro to extract the passwords as well: ```bro -C -r http-basic-auth-multiple-failures.pcap local http-auth-passwords.bro```
+  9. Now let's explore the basic http.log again: ```less -S http.log```
+  10. Do you see the populated ```password``` field?
+  11. Will the ```bro-cut``` summaries you generated earlier still work?
+
+5. Sumstats Introduction
+  1. What are sumstats?  Presentation.
+  2. Review [FTP Bruteforcing](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/brute-force.md) or check it locally: ```less -S /opt/bro/share/bro/policy/protocols/ftp/detect-bruteforcing.bro```
   3. Review the previous exercise- can we apply this model to detect http basic auth bruteforcing?  Suggest some methods.
-  4. Based on the previous example can you implement a solution?  For bruteforcers?  For the bruteforced?
+  4. How many distinct measurements do we want to make?  Based on the previous example can you implement a solution?  For bruteforcers?  For the bruteforced?
   5. Review [HTTP Basic Auth Brute Forcer Solution](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/detect-http-basic-auth-bruteforcer.bro)
   6. Review [HTTP Basic Auth Server Brute Forced Solution](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/detect-http-basic-auth-server-bruteforced.bro)
-  7. Execute both detections: ```bro -C -r http-basic-auth-multiple-failures.pcap detect-http-basic-auth-bruteforcer.bro detect-http-basic-auth-server-bruteforced.bro```
+  7. Execute both detections: ```bro -C -r http-basic-auth-multiple-failures.pcap local detect-http-basic-auth-bruteforcer.bro detect-http-basic-auth-server-bruteforced.bro```
   8. Discuss derivations and improvements- tracking by ASN, remote subnet, whitelisting, blacklisting
   9. Additional Demonstrations of the same technique.
-8. Notice Framework
-  1. Exercise: ```bro -r 01_emailing_simple.bro synscan.pcap``` 
-  2. Exercise: ```bro -r 02_emailing_complex.bro synscan.pcap```
-  3. Exercise: ```bro -r 03_avoid_some_scanners.bro synscan.pcap```
-  4. Exercise: ```bro -r 04_create_a_new_notice.bro mbam_download.trace```
-  5. Walk-through ```05_create_an_action.bro```
-7. Intel Framework
+
+6. Intel Framework
   1. Exercise 1: [Create An Intel File](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/1-create-intel.md)
   2. Exercise 2: [Notice on Intel Hits](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/2-intel-do-notice.md)
   2. Exercise 3: [Notice on Spcific Types of Intel Hits](https://github.com/LiamRandall/BroTraining-2013-12/blob/master/3-intel-notice-on-types.md)  
-  
-8. Files Framework
+
+7. Files Framework
   1. File extraction demo
     1. Extract files: ```bro -r /opt/TrafficSamples/exercise-traffic.pcap extract-all-files.bro```
     2. Show files: ```nautilus extract_files/```
@@ -56,7 +67,27 @@
     1. ```01_notice_on_mimetype_shell.bro```
     2. Solution: ````01_notice_on_mimetype.bro````
   4. Running the script: ```bro -r /opt/TrafficSamples/faf-traffic.pcap 01_notice_on_mimetype.bro```
-  5. Walk-through ````02_run_exiftool.bro````
+  
+8. Basic Malware  
+  1. move to the malware exercises ```/home/bro/training/malware```
+  2. Let's start with ```1-blackhole-medfos```
+    1. Let's replay the pcap: ```bro -r blackhole-medfos.pcap local```
+    1. Starting with ```conn.log``` work your way up the stack- what happens in this pcap?
+    2. ```files.log``` really shortcuts the process doesn't it?
+    3. ```cat notice.log``` What did bro tell you?
+  3. Let's move on a bit: ```2-purplehaze-pihar```
+    1. Let's begin by replaying the pcap: ```bro -r purplehaze.pcap local```  This may take a few mintues to run; be patient.
+    2. Start exploring the pcaps- what is going on here?  At some level handling malware is an attempt to understand the motivations- why was this installed?
+    3. This particular malware performs click fraud for the botnet owners; let's explore a bit: ```cat http.log | bro-cut referrer | sort | uniq -c | sort -n```
+    4. There are a range of things we could detect here- suggestions?
+    5. Let's look at some low hanging fruit- I see some new binaries coming down the wire: ```cat files.log | grep dosexec```
+    6. Let's follow the stack here- take the fuid and search all of the logs for it; something like this: ```cat http.log | grep F-YOUR-ID```.  How did we know to search the http.log?
+    7. Ok, we see this file come down via via http; now the ```user_agent``` field is controlled by the host, so it is easy to forge; however, here we see Java downloading a binary?!  Is that a good thing?!
+    8. Let's generalize the previous case and create an alert for that behavior; explore '''cat exe-download-by-java.bro```
+  
+  
+9 Basic Tool Integration  
+  1. Walk-through ````02_run_exiftool.bro````
     1. Install exiftool.log 
 ```
 mkdir exiftool
@@ -64,20 +95,16 @@ cd exiftool/
 wget http://www.sno.phy.queensu.ca/~phil/exiftool/Image-ExifTool-9.43.tar.gz
 tar -xzf Image-ExifTool-9.43.tar.gz
 ```
-  6. Modify ```02_run_exiftool.bro``` with the correct path: ```/home/bro/training/files-framework/exiftool/Image-ExifTool-9.43```
-  7. Run ```bro -r /opt/TrafficSamples/faf-traffic.pcap 02_run_exiftool.bro```
-  8. Examine exiftool.log
-9. ICS
-  1. Let's start by looking at the Bro default modbus.log; let's replay some traffic ```bro -r modbus.pcap local```
-  2. What does the modbus.log show?
-  3. It would be nice to have a simple listing of all of modbus pairs for documenting master/slaves; fortunately Bro includes a policy file to perform this for you.  From ~/training/modbus/known_modbus ```bro -C -r ../modbus.pcap /opt/bro/share/bro/policy/protocols/modbus/known-masters-slaves.bro```
-  4. It would be nice to have some additional detail about the ICS traffic we are seeing on the network.  From ~/training/modbus/dump_registers ```bro -r ../modbus.pcap /opt/bro/share/bro/policy/protocols/modbus/track-memmap.bro```
-  5. What are the most frequently accessed registers?
-  6. Inspect the script ```rogue_modbus.bro```- what does it do?
-  7. From ~/training/modbus/rogue_modbus let's go ahead and test it: ```bro -r ../modbus.pcap local ../rogue_modbus.bro```
-  8. Inspect the script ```modbus_master_slave_pairs.bro```- what does it do?
-  9. From ~/training/modbus/discovered_modbus_pair let's execute the script ```bro -r ../modbus.pcap local ../modbus_master_slave_pairs.bro```
-  10. Demonstration & Discussion
+  2. Modify ```02_run_exiftool.bro``` with the correct path: ```/home/bro/training/files-framework/exiftool/Image-ExifTool-9.43```
+  3. Run ```bro -r /opt/TrafficSamples/faf-traffic.pcap 02_run_exiftool.bro```
+  4. Examine exiftool.log
+
+8. Notice Framework
+  1. Exercise: ```bro -r 01_emailing_simple.bro synscan.pcap``` 
+  2. Exercise: ```bro -r 02_emailing_complex.bro synscan.pcap```
+  3. Exercise: ```bro -r 03_avoid_some_scanners.bro synscan.pcap```
+  4. Exercise: ```bro -r 04_create_a_new_notice.bro mbam_download.trace```
+  5. Walk-through ```05_create_an_action.bro```
 10. Signature Framework
   1. Exercise: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/APT/mswab_yayih/Mswab_Yayih_FD1BE09E499E8E380424B3835FC973A8_2012-03.pcap local```
   2. With file extraction: ```bro -r /opt/PCAPS_TRAFFIC_PATTERNS/APT/mswab_yayih/Mswab_Yayih_FD1BE09E499E8E380424B3835FC973A8_2012-03.pcap site/local.bro extract-all-files.bro```   
@@ -155,4 +182,9 @@ Let's go ahead and replay the sample using our new detector.
 
 You should now see a thresholded alert in the notice.log.
 
+
+
+4. SSL/TLS
+  1. Exercise: bro -C -r rsasnakeoil2.cap
+  2. Exercise: bro -r basic-gmail.pcap
 
