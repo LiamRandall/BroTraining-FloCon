@@ -105,13 +105,6 @@ http://en.wikipedia.org/wiki/Windows-1251
 9 Basic Tool Integration
   1. Let's head back to ```/home/bro/training/files-framework```  
   2. Walk-through ````02_run_exiftool.bro````
-    1. Install exiftool.log  (this is already completed on your VMs)
- ```
- mkdir exiftool
- cd exiftool/
- wget http://www.sno.phy.queensu.ca/~phil/exiftool/Image-ExifTool-9.43.tar.gz
- tar -xzf Image-ExifTool-9.43.tar.gz
- ```
   3. Confirm ```02_run_exiftool.bro``` has the correct path: ```/home/bro/training/files-framework/exiftool/Image-ExifTool-9.43```
   4. Run ```bro -r /opt/TrafficSamples/faf-traffic.pcap local 02_run_exiftool.bro```
   5. Examine exiftool.log
